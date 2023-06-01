@@ -7,7 +7,9 @@ const getCropData = () => {
   axios
     .get("https://hexschool.github.io/js-filter-data/data.json")
     .then((response) => {
-      cropData = response.data
+      cropData = response.data.filter(
+        (item) => item.作物名稱 && item.作物名稱.trim() !== ""
+      )
       //   console.log(cropData)
     })
     .catch((error) => {
@@ -38,16 +40,21 @@ renderCropData(cropData)
 buttonGroup.addEventListener("click", (e) => {
   if (e.target.nodeName === "BUTTON") {
     const btnDataType = e.target.dataset.type
-    if (btnDataType === "N04") {
-      tabFilterData = cropData.filter((item) => item.種類代碼 === "N04")
-    } else if (btnDataType === "N05") {
-      tabFilterData = cropData.filter((item) => item.種類代碼 === "N05")
-    } else if (btnDataType === "N06") {
-      tabFilterData = cropData.filter((item) => item.種類代碼 === "N06")
-    }
+
+    tabFilterData = cropData.filter((item) => item.種類代碼 === btnDataType)
+
+    //tab背景顏色樣式
+    const buttons = document.querySelectorAll(".button-group button")
+    buttons.forEach((item) => {
+      item.classList.remove("active")
+    })
+    e.target.classList.add("active")
+
     renderCropData(tabFilterData)
   }
 })
+
+//切換tab加上css樣式
 
 //search feature
 
@@ -81,9 +88,12 @@ searchInput.addEventListener("keyup", searchFunction)
 
 //篩選
 const select = document.getElementById("js-select")
-console.log(select)
 select.addEventListener("change", (e) => {
-  switch (e.target.value) {
+  handleSortCondition(e.target.value)
+})
+
+const handleSortCondition = (condition) => {
+  switch (condition) {
     case "依上價排序":
       sortCropData("上價")
       break
@@ -101,7 +111,7 @@ select.addEventListener("change", (e) => {
       break
     default:
   }
-})
+}
 
 let sortCropData = (value) => {
   cropData.sort((a, b) => {
@@ -119,6 +129,15 @@ sortAdvanced.addEventListener("click", (e) => {
   }
   const sortDirection = e.target.dataset.sort === "down" ? -1 : 1
   const sortProperty = e.target.dataset.price
+
+  const selectValueMapping = {
+    上價: "依上價排序",
+    中價: "依中價排序",
+    下價: "依下價排序",
+    平均價: "依平均價排序",
+    交易量: "依交易量排序",
+  }
+  select.value = selectValueMapping[sortProperty]
 
   cropData.sort((a, b) => sortDirection * (a[sortProperty] - b[sortProperty]))
 
